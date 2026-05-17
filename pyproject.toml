@@ -1,0 +1,24 @@
+[project]
+name = "coursepull"
+version = "0.1.0"
+description = "Download openly-available course resources from a course homepage. Local LLM classifies links; no paid APIs."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "streamlit>=1.36",
+    "ollama>=0.3.0",
+    "playwright>=1.45",
+    "requests>=2.32",
+    "beautifulsoup4>=4.12",
+    "yt-dlp>=2024.8.6",
+    "pydantic>=2.7",
+    "tqdm>=4.66",
+    "openai>=1.40",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["scraper"]
