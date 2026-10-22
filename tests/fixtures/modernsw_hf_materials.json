@@ -1,0 +1,565 @@
+{
+ "source": "CoursePull plan-only run of https://themodernsoftware.dev/, Qwen3.6-35B-A3B via HF, 2026-10-22",
+ "materials": [
+  {
+   "id": "M1",
+   "url": "https://docs.google.com/presentation/d/1zT2Ofy88cajLTLkd7TcuSM4BCELvF9qQdHmlz33i4t0/edit?usp=sharing",
+   "role": "lecture_slides",
+   "title": "Mon 9/22: Introduction and how an LLM is made (slides)",
+   "module": "Week 1"
+  },
+  {
+   "id": "M2",
+   "url": "https://docs.google.com/presentation/d/1MIhw8p6TLGdbQ9TcxhXSs5BaPf5d_h77QY70RHNfeGs/edit?usp=drive_link",
+   "role": "lecture_slides",
+   "title": "Fri 9/26: Power prompting for LLMs (slides)",
+   "module": "Week 1"
+  },
+  {
+   "id": "M3",
+   "url": "https://www.youtube.com/watch?v=7xTGNNLPyMI",
+   "role": "lecture_video",
+   "title": "Deep Dive into LLMs (video)",
+   "module": "Week 1"
+  },
+  {
+   "id": "M4",
+   "url": "https://www.youtube.com/watch?v=T9aRN5JkmL8",
+   "role": "lecture_video",
+   "title": "AI Prompt Engineering: A Deep Dive (video)",
+   "module": "Week 1"
+  },
+  {
+   "id": "M5",
+   "url": "https://cloud.google.com/discover/what-is-prompt-engineering",
+   "role": "reading",
+   "title": "Prompt Engineering Overview (Google Cloud)",
+   "module": "Week 1"
+  },
+  {
+   "id": "M6",
+   "url": "https://www.promptingguide.ai/techniques",
+   "role": "reading",
+   "title": "Prompt Engineering Guide",
+   "module": "Week 1"
+  },
+  {
+   "id": "M7",
+   "url": "https://cdn.openai.com/pdf/6a2631dc-783e-479b-b1a4-af0cfbd38630/how-openai-uses-codex.pdf",
+   "role": "reading",
+   "title": "How OpenAI Uses Codex",
+   "module": "Week 1"
+  },
+  {
+   "id": "M8",
+   "url": "https://github.com/mihail911/modern-software-dev-assignments/tree/master/week1",
+   "role": "assignment",
+   "title": "LLM Prompting Playground (assignment)",
+   "module": "Week 1"
+  },
+  {
+   "id": "M9",
+   "url": "https://stytch.com/blog/model-context-protocol-introduction/",
+   "role": "reading",
+   "title": "MCP Introduction (Stytch blog)",
+   "module": "Week 2"
+  },
+  {
+   "id": "M10",
+   "url": "https://github.com/modelcontextprotocol/servers",
+   "role": "reading",
+   "title": "Sample MCP Server Implementations",
+   "module": "Week 2"
+  },
+  {
+   "id": "M11",
+   "url": "https://developers.cloudflare.com/agents/guides/remote-mcp-server/",
+   "role": "reading",
+   "title": "MCP Server Authentication (Cloudflare)",
+   "module": "Week 2"
+  },
+  {
+   "id": "M12",
+   "url": "https://github.com/modelcontextprotocol/typescript-sdk/tree/main?tab=readme-ov-file",
+   "role": "reading",
+   "title": "MCP Server SDK",
+   "module": "Week 2"
+  },
+  {
+   "id": "M13",
+   "url": "https://blog.modelcontextprotocol.io/posts/2025-09-08-mcp-registry-preview/",
+   "role": "reading",
+   "title": "MCP Registry",
+   "module": "Week 2"
+  },
+  {
+   "id": "M14",
+   "url": "https://www.reillywood.com/blog/apis-dont-make-good-mcp-tools/",
+   "role": "reading",
+   "title": "MCP Food-for-Thought",
+   "module": "Week 2"
+  },
+  {
+   "id": "M15",
+   "url": "https://github.com/mihail911/modern-software-dev-assignments/tree/master/week2",
+   "role": "assignment",
+   "title": "First Steps in the AI IDE (assignment)",
+   "module": "Week 2"
+  },
+  {
+   "id": "M16",
+   "url": "https://docs.google.com/presentation/d/11CP26VhsjnZOmi9YFgLlonzdib9BLyAlgc4cEvC5Fps/edit?usp=sharing",
+   "role": "lecture_slides",
+   "title": "Mon 9/29: Building a coding agent from scratch (slides)",
+   "module": "Week 2"
+  },
+  {
+   "id": "M17",
+   "url": "https://drive.google.com/file/d/1YtpKFVG13DHyQ2i3HOtwyVJOV90nWeL2/view?usp=drive_link",
+   "role": "solution",
+   "title": "Mon 9/29: Building a coding agent from scratch - Completed Exercise",
+   "module": "Week 2"
+  },
+  {
+   "id": "M18",
+   "url": "https://docs.google.com/presentation/d/1zSC2ra77XOUrJeyS85houg1DU7z9hq5Y4ebagTch-5o/edit?usp=drive_link",
+   "role": "lecture_slides",
+   "title": "Fri 10/3: Building a custom MCP server (slides)",
+   "module": "Week 2"
+  },
+  {
+   "id": "M19",
+   "url": "https://drive.google.com/file/d/1J6lgZWcxPzpCpjujJSnW1aAkCYF6Yxv3/view?usp=drive_link",
+   "role": "solution",
+   "title": "Fri 10/3: Building a custom MCP server - Completed Exercise",
+   "module": "Week 2"
+  },
+  {
+   "id": "M20",
+   "url": "https://blog.ravi-mehta.com/p/specs-are-the-new-source-code",
+   "role": "reading",
+   "title": "Specs Are the New Source Code",
+   "module": "Week 3"
+  },
+  {
+   "id": "M21",
+   "url": "https://www.dbreunig.com/2025/06/22/how-contexts-fail-and-how-to-fix-them.html",
+   "role": "reading",
+   "title": "How Long Contexts Fail",
+   "module": "Week 3"
+  },
+  {
+   "id": "M22",
+   "url": "https://devin.ai/agents101",
+   "role": "reading",
+   "title": "Devin: Coding Agents 101",
+   "module": "Week 3"
+  },
+  {
+   "id": "M23",
+   "url": "https://github.com/humanlayer/advanced-context-engineering-for-coding-agents/blob/main/ace-fca.md",
+   "role": "reading",
+   "title": "Getting AI to Work In Complex Codebases",
+   "module": "Week 3"
+  },
+  {
+   "id": "M24",
+   "url": "https://x.com/rohanpaul_ai/status/1959414096589422619",
+   "role": "reading",
+   "title": "How FAANG Vibe Codes",
+   "module": "Week 3"
+  },
+  {
+   "id": "M25",
+   "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+   "role": "reading",
+   "title": "Writing Effective Tools for Agents (Anthropic)",
+   "module": "Week 3"
+  },
+  {
+   "id": "M26",
+   "url": "https://github.com/mihail911/modern-software-dev-assignments/blob/master/week3/assignment.md",
+   "role": "assignment",
+   "title": "Build a Custom MCP Server (assignment)",
+   "module": "Week 3"
+  },
+  {
+   "id": "M27",
+   "url": "https://docs.google.com/presentation/d/11pQNCde_mmRnImBat0Zymnp8TCS_cT_1up7zbcj6Sjg/edit?usp=sharing",
+   "role": "lecture_slides",
+   "title": "Mon 10/6: From first prompt to optimal IDE setup (slides)",
+   "module": "Week 3"
+  },
+  {
+   "id": "M28",
+   "url": "https://drive.google.com/file/d/1MZ0Qx68Vzw4x5x_XcV8XiPLp7fFDe1LJ/view?usp=drive_link",
+   "role": "other",
+   "title": "Mon 10/6: Design Doc Template",
+   "module": "Week 3"
+  },
+  {
+   "id": "M29",
+   "url": "https://sil.as",
+   "role": "lecture_video",
+   "title": "Fri 10/10: Silas Alberti, Head of Research Cognition (guest lecture)",
+   "module": "Week 3"
+  },
+  {
+   "id": "M30",
+   "url": "https://docs.google.com/presentation/d/1i0pRttHf72lgz8C-n7DSegcLBgncYZe_ppU7dB9zhUA/edit?usp=sharing",
+   "role": "lecture_slides",
+   "title": "Fri 10/10: Silas Alberti guest lecture (slides)",
+   "module": "Week 3"
+  },
+  {
+   "id": "M31",
+   "url": "https://www-cdn.anthropic.com/58284b19e702b49db9302d5b6f135ad8871e7658.pdf",
+   "role": "reading",
+   "title": "How Anthropic Uses Claude Code",
+   "module": "Week 4"
+  },
+  {
+   "id": "M32",
+   "url": "https://www.anthropic.com/engineering/claude-code-best-practices",
+   "role": "reading",
+   "title": "Claude Best Practices (Anthropic)",
+   "module": "Week 4"
+  },
+  {
+   "id": "M33",
+   "url": "https://github.com/vijaythecoder/awesome-claude-agents",
+   "role": "reading",
+   "title": "Awesome Claude Agents",
+   "module": "Week 4"
+  },
+  {
+   "id": "M34",
+   "url": "https://github.com/SuperClaude-Org/SuperClaude_Framework",
+   "role": "reading",
+   "title": "Super Claude",
+   "module": "Week 4"
+  },
+  {
+   "id": "M35",
+   "url": "https://blog.stockapp.com/good-context-good-code/",
+   "role": "reading",
+   "title": "Good Context Good Code",
+   "module": "Week 4"
+  },
+  {
+   "id": "M36",
+   "url": "https://medium.com/@outsightai/peeking-under-the-hood-of-claude-code-70f5a94a9a62",
+   "role": "reading",
+   "title": "Peeking Under the Hood of Claude Code",
+   "module": "Week 4"
+  },
+  {
+   "id": "M37",
+   "url": "https://github.com/mihail911/modern-software-dev-assignments/blob/master/week4/assignment.md",
+   "role": "assignment",
+   "title": "Coding with Claude Code (assignment)",
+   "module": "Week 4"
+  },
+  {
+   "id": "M38",
+   "url": "https://docs.google.com/presentation/d/19mgkwAnJDc7JuJy0zhhoY0ZC15DiNpxL8kchPDnRkRQ/edit?usp=sharing",
+   "role": "lecture_slides",
+   "title": "Mon 10/13: How to be an agent manager (slides)",
+   "module": "Week 4"
+  },
+  {
+   "id": "M39",
+   "url": "https://borischerny.com",
+   "role": "lecture_video",
+   "title": "Fri 10/17: Boris Cherney, Creator of Claude Code (guest lecture)",
+   "module": "Week 4"
+  },
+  {
+   "id": "M40",
+   "url": "https://docs.google.com/presentation/d/1bv7Zozn6z45CAh-IyX99dMPMyXCHC7zj95UfwErBYQ8/edit?usp=sharing",
+   "role": "lecture_slides",
+   "title": "Fri 10/17: Boris Cherney guest lecture (slides)",
+   "module": "Week 4"
+  },
+  {
+   "id": "M41",
+   "url": "https://www.warp.dev/university?slug=university",
+   "role": "reading",
+   "title": "Warp University",
+   "module": "Week 5"
+  },
+  {
+   "id": "M42",
+   "url": "https://www.warp.dev/university/getting-started/warp-vs-claude-code",
+   "role": "reading",
+   "title": "Warp vs Claude Code",
+   "module": "Week 5"
+  },
+  {
+   "id": "M43",
+   "url": "https://notion.warp.dev/How-Warp-uses-Warp-to-build-Warp-21643263616d81a6b9e3e63fd8a7380c",
+   "role": "reading",
+   "title": "How Warp Uses Warp to Build Warp",
+   "module": "Week 5"
+  },
+  {
+   "id": "M44",
+   "url": "https://github.com/mihail911/modern-software-dev-assignments/tree/master/week5",
+   "role": "assignment",
+   "title": "Agentic Development with Warp (assignment)",
+   "module": "Week 5"
+  },
+  {
+   "id": "M45",
+   "url": "https://docs.google.com/presentation/d/1Djd4eBLBbRkma8rFnJAWMT0ptct_UGB8hipmoqFVkxQ/edit?usp=sharing",
+   "role": "lecture_slides",
+   "title": "Mon 10/20: How to Build a Breakout AI Developer Product (slides)",
+   "module": "Week 5"
+  },
+  {
+   "id": "M46",
+   "url": "https://www.linkedin.com/in/zachlloyd",
+   "role": "lecture_video",
+   "title": "Fri 10/24: Zach Lloyd, CEO Warp (guest lecture)",
+   "module": "Week 5"
+  },
+  {
+   "id": "M47",
+   "url": "https://www.figma.com/slides/kwbcmtqTFQMfUhiMH8BiEx/Warp---Stanford--Copy-?node-id=9-116&t=oBWBCk8mjg2l2NR5-1",
+   "role": "lecture_slides",
+   "title": "Fri 10/24: Zach Lloyd guest lecture (slides, Figma)",
+   "module": "Week 5"
+  },
+  {
+   "id": "M48",
+   "url": "https://www.splunk.com/en_us/blog/learn/sast-vs-dast.html",
+   "role": "reading",
+   "title": "SAST vs DAST (Splunk)",
+   "module": "Week 6"
+  },
+  {
+   "id": "M49",
+   "url": "https://embracethered.com/blog/posts/2025/github-copilot-remote-code-execution-via-prompt-injection/",
+   "role": "reading",
+   "title": "Copilot Remote Code Execution via Prompt Injection",
+   "module": "Week 6"
+  },
+  {
+   "id": "M50",
+   "url": "https://semgrep.dev/blog/2025/finding-vulnerabilities-in-modern-web-apps-using-claude-code-and-openai-codex/",
+   "role": "reading",
+   "title": "Finding Vulnerabilities in Modern Web Apps Using Claude Code and OpenAI Codex (Semgrep)",
+   "module": "Week 6"
+  },
+  {
+   "id": "M51",
+   "url": "https://unit42.paloaltonetworks.com/agentic-ai-threats/",
+   "role": "reading",
+   "title": "Agentic AI Threats: Identity Spoofing and Impersonation Risks (Palo Alto)",
+   "module": "Week 6"
+  },
+  {
+   "id": "M52",
+   "url": "https://owasp.org/www-project-top-ten/",
+   "role": "reading",
+   "title": "OWASP Top Ten",
+   "module": "Week 6"
+  },
+  {
+   "id": "M53",
+   "url": "https://research.trychroma.com/context-rot",
+   "role": "reading",
+   "title": "Context Rot: Understanding Degradation in AI Context Windows (Chroma)",
+   "module": "Week 6"
+  },
+  {
+   "id": "M54",
+   "url": "https://github.com/SeanHeelan/o3_finds_cve-2025-37899/blob/master/system_prompt_uafs.prompt",
+   "role": "reading",
+   "title": "Vulnerability Prompt Analysis with O3",
+   "module": "Week 6"
+  },
+  {
+   "id": "M55",
+   "url": "https://github.com/mihail911/modern-software-dev-assignments/blob/master/week6/assignment.md",
+   "role": "assignment",
+   "title": "Writing Secure AI Code (assignment)",
+   "module": "Week 6"
+  },
+  {
+   "id": "M56",
+   "url": "https://docs.google.com/presentation/d/1C05bCLasMDigBbkwdWbiz4WrXibzi6ua4hQQbTod_8c/edit?usp=sharing",
+   "role": "lecture_slides",
+   "title": "Mon 10/27: AI QA, SAST, DAST, and Beyond (slides)",
+   "module": "Week 6"
+  },
+  {
+   "id": "M57",
+   "url": "https://www.linkedin.com/in/isaacevans",
+   "role": "lecture_video",
+   "title": "Fri 10/31: Isaac Evans, CEO Semgrep (guest lecture)",
+   "module": "Week 6"
+  },
+  {
+   "id": "M58",
+   "url": "https://blog.codinghorror.com/code-reviews-just-do-it/",
+   "role": "reading",
+   "title": "Code Reviews: Just Do It (Coding Horror)",
+   "module": "Week 7"
+  },
+  {
+   "id": "M59",
+   "url": "https://github.blog/developer-skills/github/how-to-review-code-effectively-a-github-staff-engineers-philosophy/",
+   "role": "reading",
+   "title": "How to Review Code Effectively (GitHub Blog)",
+   "module": "Week 7"
+  },
+  {
+   "id": "M60",
+   "url": "https://arxiv.org/pdf/2405.13565",
+   "role": "reading",
+   "title": "AI-Assisted Assessment of Coding Practices in Modern Code Review (arXiv)",
+   "module": "Week 7"
+  },
+  {
+   "id": "M61",
+   "url": "https://graphite.dev/guides/ai-code-review-implementation-best-practices",
+   "role": "reading",
+   "title": "AI Code Review Implementation Best Practices (Graphite)",
+   "module": "Week 7"
+  },
+  {
+   "id": "M62",
+   "url": "https://blakesmith.me/2015/02/09/code-review-essentials-for-software-teams.html",
+   "role": "reading",
+   "title": "Code Review Essentials for Software Teams",
+   "module": "Week 7"
+  },
+  {
+   "id": "M63",
+   "url": "https://www.youtube.com/watch?v=TswQeKftnaw",
+   "role": "lecture_video",
+   "title": "Lessons from millions of AI code reviews (video)",
+   "module": "Week 7"
+  },
+  {
+   "id": "M64",
+   "url": "https://github.com/mihail911/modern-software-dev-assignments/tree/master/week7",
+   "role": "assignment",
+   "title": "Code Review Reps (assignment)",
+   "module": "Week 7"
+  },
+  {
+   "id": "M65",
+   "url": "https://docs.google.com/presentation/d/1NkPzpuSQt6Esbnr2-EnxM9007TL6ebSPFwITyVY-QxU/edit?usp=sharing",
+   "role": "lecture_slides",
+   "title": "Mon 11/3: AI code review (slides)",
+   "module": "Week 7"
+  },
+  {
+   "id": "M66",
+   "url": "https://www.linkedin.com/in/tomasreimers",
+   "role": "lecture_video",
+   "title": "Fri 11/7: Tomas Reimers, CPO Graphite (guest lecture)",
+   "module": "Week 7"
+  },
+  {
+   "id": "M67",
+   "url": "https://drive.google.com/file/d/1hwF-RIkOJ_OFy17BKhzFyCtxSS7Pcf7p/view?usp=drive_link",
+   "role": "lecture_slides",
+   "title": "Fri 11/7: Tomas Reimers guest lecture (slides, Google Drive)",
+   "module": "Week 7"
+  },
+  {
+   "id": "M68",
+   "url": "https://github.com/mihail911/modern-software-dev-assignments/tree/master/week8",
+   "role": "assignment",
+   "title": "Multi-stack Web App Builds (assignment)",
+   "module": "Week 8"
+  },
+  {
+   "id": "M69",
+   "url": "https://docs.google.com/presentation/d/1GrVLsfMFIXMiGjIW9D7EJIyLYh_-3ReHHNd_vRfZUoo/edit?usp=sharing",
+   "role": "lecture_slides",
+   "title": "Mon 11/10: End-to-end apps with a single prompt (slides)",
+   "module": "Week 8"
+  },
+  {
+   "id": "M70",
+   "url": "https://www.linkedin.com/in/gaspargarcia",
+   "role": "lecture_video",
+   "title": "Fri 11/14: Gaspar Garcia, Head of AI Research Vercel (guest lecture)",
+   "module": "Week 8"
+  },
+  {
+   "id": "M71",
+   "url": "https://docs.google.com/presentation/d/1Jf2aN5zIChd5tT86rZWWqY-iDWbxgR-uynKJxBR7E9E/edit?usp=sharing",
+   "role": "lecture_slides",
+   "title": "Fri 11/14: Gaspar Garcia guest lecture (slides)",
+   "module": "Week 8"
+  },
+  {
+   "id": "M72",
+   "url": "https://sre.google/sre-book/introduction/",
+   "role": "reading",
+   "title": "Introduction to Site Reliability Engineering (Google SRE book)",
+   "module": "Week 9"
+  },
+  {
+   "id": "M73",
+   "url": "https://last9.io/blog/traces-spans-observability-basics/",
+   "role": "reading",
+   "title": "Observability Basics You Should Know (Last9)",
+   "module": "Week 9"
+  },
+  {
+   "id": "M74",
+   "url": "https://resolve.ai/blog/kubernetes-troubleshooting-in-resolve-ai",
+   "role": "reading",
+   "title": "Kubernetes Troubleshooting with AI (Resolve AI)",
+   "module": "Week 9"
+  },
+  {
+   "id": "M75",
+   "url": "https://resolve.ai/blog/product-deep-dive",
+   "role": "reading",
+   "title": "Your New Autonomous Teammate (Resolve AI)",
+   "module": "Week 9"
+  },
+  {
+   "id": "M76",
+   "url": "https://resolve.ai/blog/role-of-multi-agent-systems-AI-native-engineering",
+   "role": "reading",
+   "title": "Role of Multi Agent Systems in Making Software Engineers AI-native (Resolve AI)",
+   "module": "Week 9"
+  },
+  {
+   "id": "M77",
+   "url": "https://resolve.ai/blog/Top-5-Benefits",
+   "role": "reading",
+   "title": "Benefits of Agentic AI in On-call Engineering (Resolve AI)",
+   "module": "Week 9"
+  },
+  {
+   "id": "M78",
+   "url": "https://docs.google.com/presentation/d/1Mfe-auWAsg9URCujneKnHr0AbO8O-_U4QXBVOlO4qp0/edit?usp=sharing",
+   "role": "lecture_slides",
+   "title": "Mon 11/17: Incident response and DevOps (slides)",
+   "module": "Week 9"
+  },
+  {
+   "id": "M79",
+   "url": "https://drive.google.com/file/d/11WnEbMGc9kny_WBpMN10I8oP8XsiQOnM/view?usp=sharing",
+   "role": "lecture_slides",
+   "title": "Fri 11/21: Mayank Agarwal, CTO Resolve, and Milind Ganjoo, Technical Staff Resolve (slides, Google Drive)",
+   "module": "Week 9"
+  },
+  {
+   "id": "M80",
+   "url": "https://a16z.com/author/martin-casado/",
+   "role": "lecture_video",
+   "title": "Fri 12/5: Martin Casado, General Partner a16z (guest lecture)",
+   "module": "Week 10"
+  }
+ ]
+}
