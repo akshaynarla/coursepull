@@ -91,6 +91,8 @@ _LOGIN_URL = re.compile(
 )
 _LOGIN_TITLE = re.compile(r"<title>[^<]*(sign in|log ?in|anmelden|connexion|authenticat)", re.IGNORECASE)
 _TITLE = re.compile(r"<title[^>]*>([^<]{0,200})", re.IGNORECASE)
+_NO_SUCH_HOST = re.compile(r"NameResolutionError|getaddrinfo failed|Name or service not known|nodename nor servname",
+                           re.IGNORECASE)
 
 
 def looks_like_login(html: str, final_url: str) -> bool:
@@ -149,6 +151,8 @@ def download(
         resp = session().get(url, stream=True, timeout=(REQUEST_TIMEOUT, DOWNLOAD_TIMEOUT),
                              allow_redirects=True, headers=headers)
     except requests.RequestException as exc:
+        if _NO_SUCH_HOST.search(str(exc)):  # the site itself is gone, not a passing network problem
+            raise DownloadError(ErrorKind.NOT_FOUND, f"site unreachable ({urlparse(url).netloc})") from exc
         raise DownloadError(ErrorKind.NETWORK, f"{type(exc).__name__}: {exc}") from exc
 
     with resp:

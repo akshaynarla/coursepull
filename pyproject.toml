@@ -1,12 +1,10 @@
 [project]
 name = "coursepull"
 version = "0.1.0"
-description = "Download openly-available course resources from a course homepage. Local LLM classifies links; no paid APIs."
+description = "A team of LLM agents that collects the study materials of an open online course for offline study."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "streamlit>=1.36",
-    "ollama>=0.3.0",
     "playwright>=1.45",
     "requests>=2.32",
     "beautifulsoup4>=4.12",
@@ -16,7 +14,8 @@ dependencies = [
     "openai>=1.40",
     "langgraph>=1.2.15",
     "langgraph-checkpoint-sqlite>=3.1.2",
-    "pypdf>=6.20.1",
+    "pypdf[crypto]>=6.20.1",
+    "nicegui>=3.18.0",
 ]
 
 [build-system]
@@ -28,6 +27,7 @@ packages = ["scraper"]
 
 [dependency-groups]
 dev = [
+    "pillow>=12.3.0",
     "pytest>=9.1.1",
 ]
 

@@ -1,1 +1,1 @@
-"""Three-agent pipeline: Discoverer → Classifier → Verifier."""
+"""The agents: Orchestrator, Scouts, Tutor, Reviewer and Examiner, and the tools they work with."""

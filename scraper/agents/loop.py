@@ -25,6 +25,7 @@ from ..config import (
     AGENT_MAX_STEPS,
     AGENT_MAX_TOKENS,
     AGENT_TOOL_RESULT_CHARS,
+    AGENT_WRAP_UP_RATIO,
     CONTEXT_KEEP_LARGE_RESULTS,
     CONTEXT_LARGE_RESULT_CHARS,
     LLM_CALL_RETRIES,
@@ -129,6 +130,7 @@ def run_agent(
     messages: list[dict] = [{"role": "system", "content": system}, {"role": "user", "content": user}]
     tokens = 0
     nudges = 0
+    warned = False
 
     token_cap = AGENT_MAX_TOKENS[role]
     for step in range(1, max_steps + 1):
@@ -144,6 +146,7 @@ def run_agent(
         used = turn.tokens or sum(len(str(m.get("content") or "")) for m in messages) // 4
         tokens += used
         rc.budget.charge(role, used)
+        emit({"type": "tokens", "role": role, "agent": name, "used": rc.budget.used, "limit": rc.budget.limit})
 
         said = _THINK.sub("", turn.content).strip()
         if said and turn.tool_calls:
@@ -182,6 +185,15 @@ def run_agent(
                              "content": _clip(content, AGENT_TOOL_RESULT_CHARS)})
         if done:
             return AgentResult(True, final_result, step, tokens)
+
+        # Near the end of its budget an agent must hand in what it has; otherwise all its work is
+        # lost at the cap (run 8's Examiner inspected files until it hit 150k and never submitted).
+        if finals and not warned and (tokens >= AGENT_WRAP_UP_RATIO * token_cap or step >= max_steps - 2):
+            warned = True
+            names = ", ".join(f"`{t.name}`" for t in finals)
+            messages.append({"role": "user", "content": (
+                f"Your budget is nearly used up ({tokens:,} of {token_cap:,} tokens, step {step} of {max_steps}). "
+                f"Stop investigating and call {names} now with what you have.")})
 
     return AgentResult(False, None, max_steps, tokens, stopped="step_limit")
 

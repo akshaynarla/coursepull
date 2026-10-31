@@ -53,4 +53,13 @@ class Manifest:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         tmp = self.path.with_suffix(".tmp")
         tmp.write_text(json.dumps(self._entries, indent=1, ensure_ascii=False), encoding="utf-8")
-        tmp.replace(self.path)
+        # On Windows a virus scanner or the search indexer can hold manifest.json for a moment,
+        # making the replace fail with "Access is denied". Wait it out briefly.
+        for attempt in range(8):
+            try:
+                tmp.replace(self.path)
+                return
+            except PermissionError:
+                if attempt == 7:
+                    raise
+                time.sleep(0.05 * (attempt + 1))

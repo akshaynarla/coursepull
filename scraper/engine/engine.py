@@ -100,7 +100,10 @@ class DownloadEngine:
         ids = []
         for task in tasks:
             ref = identify(task.url)
-            if task.kind is not None and task.kind != ref.kind:
+            # A file or folder inside a GitHub repo always goes to the repo downloader, which fetches
+            # the collected term's branch; "webpage" is only for a whole repo saved as its README page.
+            single_part_of_repo = ref.provider == "github" and "path" in ref.params
+            if task.kind is not None and task.kind != ref.kind and not single_part_of_repo:
                 ref = ref.model_copy(update={"kind": task.kind})
             with self._lock:
                 if self._closed:
@@ -235,7 +238,10 @@ class DownloadEngine:
             return self._outcome(task, ref, "failed", error_kind=kind, message=f"{type(exc).__name__}: {exc}")
 
         if result.files:
-            self._manifest.record(ref.key, task.url, result.files)
+            try:
+                self._manifest.record(ref.key, task.url, result.files)
+            except OSError:  # bookkeeping for resuming must never turn a finished download into a failure
+                log.warning("could not update the manifest for %s", task.url, exc_info=True)
         child_ids = self.submit(result.children) if result.children and not self.cancel_event.is_set() else []
         return self._outcome(task, ref, "done", files=result.files, message=result.message, children=child_ids)
 

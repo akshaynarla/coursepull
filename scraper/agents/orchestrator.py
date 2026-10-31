@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 from ..config import MAX_SCOUT_WAVES, MAX_SCOUTS_PER_WAVE
 from ..identify import identify
 from ..run_context import RunContext, emit
-from ..state import CourseState, Material, ScoutAssignment, ScoutReport, SiteBrief
+from ..state import CourseState, Material, ResourceKind, ScoutAssignment, ScoutReport, SiteBrief
 from .loop import Tool, ToolError, run_agent
 from .terms import check_term_choice
 from .toolbox import LinkBook, web_tools
@@ -51,6 +51,8 @@ DECIDE = """\
 The Scouts have reported (below). Decide whether another wave of scouting is needed: only if \
 there are unexplored pages of the course site that likely hold course materials (lecture or \
 week pages, a readings list, assignments). Don't scout external sites, people's pages or blogs. \
+Don't scout pages of other offerings either (an earlier term or year of the course): the student \
+gets one offering only, so their materials would all be left out. \
 Call decide with action "scout" and new assignments, or action "plan" to hand over to the Tutor."""
 
 RECOVER = """\
@@ -95,6 +97,13 @@ def _assignments(items: list[AssignmentArgs], wave: int, recovery_for: list[str]
         bad = [u for u in item.start_urls if not u.startswith(("http://", "https://"))]
         if bad:
             raise ToolError(f"start_urls must be absolute http(s) URLs: {bad}")
+        # Run 8 sent a Scout to crawl the assignments' GitHub repo: 200k tokens, nothing found.
+        for url in item.start_urls:
+            ref = identify(url)
+            if ref.kind != ResourceKind.WEBPAGE or ref.provider in _NOT_COURSE_PAGES:
+                raise ToolError(f"{url} is a {ref.kind.value} ({ref.provider}), not a course web page. Scouts read "
+                                "course pages; repositories, videos, papers, files and Drive items are downloaded "
+                                "by the download engine once a Scout records their link.")
         if visited and (seen := {u: f"Scout {visited[_norm(u)]}" for u in item.start_urls if _norm(u) in visited}):
             raise ToolError(f"already read, with findings recorded: {seen}. Send Scouts only to unexplored "
                             "pages, or choose action 'plan'.")
@@ -110,6 +119,9 @@ def _assignments(items: list[AssignmentArgs], wave: int, recovery_for: list[str]
                         start_urls=item.start_urls, brief=item.brief, recovery_for=recovery_for or [])
         for i, item in enumerate(items)
     ]
+
+
+_NOT_COURSE_PAGES = {"github", "gitlab", "youtube", "social", "lms", "zoom", "google_forms", "google"}
 
 
 def _norm(url: str) -> str:

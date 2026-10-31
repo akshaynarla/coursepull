@@ -45,16 +45,43 @@ def _clip(text: str, limit: int) -> str:
     return text if len(text) <= limit else text[: limit - 1] + "…"
 
 
+def _column_header(cell: Tag, row: Tag) -> str:
+    """The header of a table cell's column, when the table has a header row above this one."""
+    table = row.find_parent("table")
+    header = table.find("tr") if table else None
+    if header is None or header is row or header.find("td", recursive=False):
+        return ""  # no header row: a first row with data cells is data
+    index = sum(int(c.get("colspan") or 1) for c in cell.find_previous_siblings(["td", "th"]))
+    position = 0
+    for head in header.find_all(["th", "td"], recursive=False):
+        if position == index:
+            return _clip(head.get_text(" ", strip=True), _HEADING_CHARS)
+        position += int(head.get("colspan") or 1)
+    return ""
+
+
 def _snippet(el: Tag) -> str:
-    """Text of the enclosing row/list item/paragraph; failing that, a small enclosing box."""
+    """Text of the enclosing row/list item/paragraph; failing that, a small enclosing box.
+
+    In a table row the link's own cell comes first, under its column header, so clipping a
+    long row never loses what the link is (a "Recording" under "Guest Spotlight", say).
+    """
     own = el.get_text(" ", strip=True)
     box = ""
+    cell: Tag | None = None
     for depth, parent in enumerate(el.parents):
         if parent.name in ("body", "html", "main") or depth > 5:
             break
+        if cell is None and parent.name in ("td", "th"):
+            cell = parent
         text = parent.get_text(" ", strip=True)
         if not text or text == own:
             continue  # e.g. a <td> holding nothing but the link
+        if parent.name == "tr" and cell is not None:
+            column = _column_header(cell, parent)
+            cell_text = cell.get_text(" ", strip=True)
+            lead = f"{column}: {cell_text}" if column else cell_text
+            return _clip(f"{lead} | row: {text}" if cell_text != text else lead, _SNIPPET_CHARS)
         if parent.name in _ROW_TAGS:
             return _clip(text, _SNIPPET_CHARS)
         if not box and parent.name in _BOX_TAGS and len(text) <= 300:

@@ -38,7 +38,13 @@ def _size(n: int) -> str:
 
 
 def write_report(state: CourseState, rc: RunContext) -> dict:
-    root = rc.output_dir
+    """The finish step: write the index, tell the listeners, end the run."""
+    emit({"type": "done", **build_report(state, rc.output_dir)})
+    return {"phase": "finished"}
+
+
+def build_report(state: CourseState, root: Path) -> dict:
+    """Write README.md and skipped.md for the run's state; return the run's summary."""
     root.mkdir(parents=True, exist_ok=True)
     plan: Plan = state.get("plan") or Plan()
     outcomes = state.get("outcomes") or {}
@@ -115,7 +121,6 @@ def write_report(state: CourseState, rc: RunContext) -> dict:
         skipped.append("")
     (root / "skipped.md").write_text("\n".join(skipped), encoding="utf-8")
 
-    emit({"type": "done", "title": title, "planned": len(plan.entries), "files": len(all_files),
-          "bytes": total_bytes, "failed": len(failed), "stop_reason": stop,
-          "passed": exam.passed if exam else None, "readme": str(root / "README.md")})
-    return {"phase": "finished"}
+    return {"title": title, "planned": len(plan.entries), "files": len(all_files), "bytes": total_bytes,
+            "failed": len(failed), "stop_reason": stop, "passed": exam.passed if exam else None,
+            "readme": str(root / "README.md")}

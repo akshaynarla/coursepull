@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import io
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
+from pypdf import PdfWriter
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -70,6 +72,65 @@ def file_server():
     server.daemon_threads = True
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
+    yield f"http://127.0.0.1:{server.server_address[1]}"
+    server.shutdown()
+    server.server_close()
+
+
+# ---------- a small course site for end-to-end runs with scripted agents ----------
+
+FILLER = "<p>" + "This course teaches practical software testing. " * 6 + "</p>" + '<a href="#top">top</a>' * 5
+
+
+def _pdf() -> bytes:
+    writer = PdfWriter()
+    writer.add_blank_page(width=200, height=200)
+    buf = io.BytesIO()
+    writer.write(buf)
+    return buf.getvalue()
+
+
+SITE = {
+    "/course/": f"""<html><head><title>Testing 101</title></head><body><h1>Testing 101</h1>
+        <nav><a href="/course/readings.html">Readings</a> <a href="https://twitter.com/prof">Twitter</a></nav>
+        <h2>Schedule</h2><table>
+        <tr><td>Week 1</td><td>Intro</td><td><a href="/course/l1.pdf">Week 1 slides</a></td></tr>
+        <tr><td>Week 2</td><td>Mocks</td><td><a href="/course/l2.pdf">Week 2 slides</a></td></tr>
+        </table>{FILLER}</body></html>""",
+    "/course/readings.html": f"""<html><head><title>Readings</title></head><body><h2>Required reading</h2>
+        <ul><li><a href="/course/paper-a.pdf">Paper A</a></li>
+        <li><a href="/course/paper-b.pdf">Paper B</a> (<a href="/course/mirror/paper-b.pdf">Paper B mirror</a>)</li>
+        </ul>{FILLER}</body></html>""",
+}
+PDFS = {"/course/l1.pdf", "/course/l2.pdf", "/course/paper-a.pdf", "/course/mirror/paper-b.pdf"}
+
+
+class _Site(BaseHTTPRequestHandler):
+    def log_message(self, *_args) -> None:
+        pass
+
+    def do_GET(self) -> None:
+        path = self.path.split("?")[0]
+        if path in SITE:
+            body, ctype = SITE[path].encode(), "text/html; charset=utf-8"
+        elif path in PDFS:
+            body, ctype = _pdf(), "application/pdf"
+        else:
+            self.send_response(404)
+            self.end_headers()
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+
+@pytest.fixture(scope="session")
+def site():
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _Site)
+    server.daemon_threads = True
+    threading.Thread(target=server.serve_forever, daemon=True).start()
     yield f"http://127.0.0.1:{server.server_address[1]}"
     server.shutdown()
     server.server_close()

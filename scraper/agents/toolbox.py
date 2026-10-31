@@ -7,6 +7,7 @@ model, and so never hallucinated.
 
 from __future__ import annotations
 
+import gzip
 import json
 import subprocess
 import threading
@@ -44,17 +45,38 @@ class PageSnapshot:
     revealed: bool
 
 
+@dataclass
+class SavedPage:
+    """A page as it came from the site: its HTML, and each revealed view's HTML."""
+
+    final_url: str
+    views: list[tuple[str, str]]  # (label, html); label "" is the page as loaded
+    revealed: bool
+
+    def snapshot(self) -> PageSnapshot:
+        html = self.views[0][1]
+        links = extract_views(self.views, self.final_url) if self.revealed else extract(html, self.final_url)
+        return PageSnapshot(self.final_url, page_outline(html), links, self.revealed)
+
+
 class PageLimitReached(ToolError):
     pass
 
 
 class PageStore:
-    """Pages read during a run, shared by all agents, with a run-wide page cap."""
+    """Pages read during a run, shared by all agents, with a run-wide page cap.
 
-    def __init__(self, max_pages: int) -> None:
+    With saved pages (a course site frozen for evals), pages come only from those:
+    a page that is not saved reads as missing, so a run never depends on the live site.
+    Saved pages keep their HTML, so they go through the same extraction as a live read.
+    """
+
+    def __init__(self, max_pages: int, saved: dict[str, SavedPage] | None = None) -> None:
         self.max_pages = max_pages
+        self.saved = saved
         self.offerings = OfferingMap()
         self._pages: dict[str, PageSnapshot] = {}
+        self._raw: dict[str, SavedPage] = {}
         self._reads = 0
         self._lock = threading.Lock()
 
@@ -75,20 +97,39 @@ class PageStore:
             if self._reads >= self.max_pages:
                 raise PageLimitReached(f"the run's page budget ({self.max_pages} pages) is used up")
             self._reads += 1
-        if reveal:
+        if self.saved is not None:
+            raw = self.saved.get(key)
+            if raw is None:
+                raise ToolError(f"{url} is not in the saved copy of this course site (treat it as unreachable)")
+        elif reveal:
             final_url, views = render_interactive(url)
-            snapshot = PageSnapshot(final_url, page_outline(views[0].html),
-                                    extract_views([(v.label, v.html) for v in views], final_url), True)
+            raw = SavedPage(final_url, [(v.label, v.html) for v in views], True)
         else:
             fetched = fetch(url)
-            snapshot = PageSnapshot(fetched.final_url, page_outline(fetched.html),
-                                    extract(fetched.html, fetched.final_url), False)
+            raw = SavedPage(fetched.final_url, [("", fetched.html)], False)
+        snapshot = raw.snapshot()
         with self._lock:
+            self._raw[key] = raw
             self._pages[key] = snapshot
             self._pages.setdefault(snapshot.final_url.split("#")[0], snapshot)
             self.offerings.learn(snapshot.final_url, snapshot.outline.title, snapshot.links,
                                  complete=snapshot.revealed or not snapshot.outline.controls)
         return snapshot
+
+    def save(self, path: Path) -> None:
+        """Add the pages read so far (keyed by the URL asked for) to the gzipped JSON at path."""
+        pages = load_pages(path) if path.exists() else {}
+        with self._lock:
+            for key, raw in self._raw.items():
+                if key not in pages or (raw.revealed and not pages[key].revealed):
+                    pages[key] = raw
+        data = {key: {"final_url": p.final_url, "revealed": p.revealed, "views": p.views} for key, p in pages.items()}
+        path.write_bytes(gzip.compress(json.dumps(data, ensure_ascii=False).encode("utf-8")))
+
+
+def load_pages(path: Path) -> dict[str, SavedPage]:
+    data = json.loads(gzip.decompress(path.read_bytes()).decode("utf-8"))
+    return {key: SavedPage(p["final_url"], [tuple(v) for v in p["views"]], p["revealed"]) for key, p in data.items()}
 
 
 # ---------- link ids ----------
@@ -277,6 +318,9 @@ def inspect_file(path: Path, text_chars: int = 300) -> dict:
     try:
         if info["sniffed"] == "pdf":
             reader = PdfReader(str(path))
+            if reader.is_encrypted and not reader.decrypt(""):
+                info["error"] = "password-protected: the PDF cannot be opened without its password"
+                return info
             info["pages"] = len(reader.pages)
             meta_title = (reader.metadata or {}).get("/Title") if reader.metadata else None
             if meta_title:

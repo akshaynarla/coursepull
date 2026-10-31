@@ -19,7 +19,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
-from .config import USER_AGENT
+from .config import PLAYWRIGHT_TIMEOUT_MS, USER_AGENT
 
 log = logging.getLogger(__name__)
 
@@ -107,3 +107,35 @@ def _wait_for_port(proc: subprocess.Popen, port_file: Path) -> str:
             return lines[0]
         time.sleep(0.05)
     raise RuntimeError("Edge did not open its debugging port in time")
+
+
+def goto(page, url: str, timeout_ms: int = PLAYWRIGHT_TIMEOUT_MS):
+    """Navigate and let the page settle, without waiting forever.
+
+    Waiting for "network idle" fails on many modern sites: analytics, chat widgets and
+    live updates keep the network busy, so it times out (Stytch, GitHub, Notion and Figma
+    all did). Wait for the DOM, then give load and idle a short, optional chance.
+    """
+    from playwright.sync_api import Error as PlaywrightError
+
+    response = page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+    for state, wait_ms in (("load", 15_000), ("networkidle", 4_000)):
+        try:
+            page.wait_for_load_state(state, timeout=wait_ms)
+        except PlaywrightError:
+            pass  # a busy page is still a usable page
+    return response
+
+
+def scroll_through(page, max_steps: int = 60) -> None:
+    """Scroll to the bottom and back so lazily loaded images are in place before printing."""
+    page.evaluate(
+        """async (maxSteps) => {
+            for (let i = 0, y = 0; i < maxSteps && y < document.body.scrollHeight; i++, y += 900) {
+                window.scrollTo(0, y);
+                await new Promise(r => setTimeout(r, 120));
+            }
+            window.scrollTo(0, 0);
+        }""",
+        max_steps,
+    )

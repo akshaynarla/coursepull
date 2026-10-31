@@ -46,9 +46,11 @@ lecture recording; exclude it. Social media pages are excluded unless the course
 assigns that post as a reading.
 - Keep one copy of each resource. If a lecture has the same deck as Google Slides and as a PDF, \
 plan one (Google Slides gives PDF and PPTX) and exclude the other as a duplicate.
-- How things are saved: a code repository downloads as a zip of all its code. When a repository \
-is listed as a reading rather than as course code, plan it with kind="webpage" to save its \
-README page instead.
+- How things are saved: a code repository downloads as a zip of all its code. When a WHOLE \
+repository is listed as a reading rather than as course code, plan it with kind="webpage" to save \
+its README page instead. A single file in a repository (a GitHub "blob" link, such as an \
+assignment.md) and a folder of one (a "tree" link, such as an assignment's starter code) keep \
+their kind: they are downloaded as they are.
 - required is your call for every item: true for lecture material, assignments and readings the \
 course marks as required; false for optional, further or background reading and extra videos.
 - One offering only: if the course brief names a term, plan only that term's materials and \
@@ -173,6 +175,23 @@ def describe_entry(e: PlanEntry) -> str:
             f" ({'required' if e.required else 'optional'}): {e.rationale[:100]}")
 
 
+def plan_event(state: CourseState, entries: list[PlanEntry], *, finished: bool = True,
+               course_map: CourseMap | None = None, excluded: int | None = None) -> dict:
+    """The plan as an event: what the UI's course map is built from."""
+    course_map = course_map or state.get("course_map")
+    brief, plan = state.get("brief"), state.get("plan")
+    return {
+        "type": "plan", "agent": "Tutor", "finished": finished,
+        "title": course_map.title if course_map else (brief.course_title if brief else ""),
+        "planned": len(entries),
+        "excluded": excluded if excluded is not None else (len(plan.excluded) if plan else 0),
+        "modules": [{"key": m.key, "title": m.title} for m in (course_map.modules if course_map else [])],
+        "entries": [{"task_id": e.task.task_id, "material_id": e.material_id, "name": e.task.name or e.material_id,
+                     "role": e.role, "module": e.module_key, "required": e.required,
+                     "kind": e.task.kind.value if e.task.kind else None} for e in entries],
+    }
+
+
 def run_tutor(state: CourseState, rc: RunContext) -> dict:
     materials: dict[str, Material] = state.get("materials") or {}
     old_plan: Plan = state.get("plan") or Plan()
@@ -279,8 +298,8 @@ def run_tutor(state: CourseState, rc: RunContext) -> dict:
     result = run_agent(role="tutor", name="Tutor", system=system, user="\n".join(sections), tools=tools, rc=rc)
     new_plan = Plan(entries=list(entries.values()), excluded=list(excluded.values()),
                     summary=result.final if result.finished else old_plan.summary)
-    emit({"type": "plan", "agent": "Tutor", "planned": len(new_plan.entries), "excluded": len(new_plan.excluded),
-          "modules": len(course_map[0].modules) if course_map[0] else 0, "finished": result.finished})
+    emit(plan_event(state, new_plan.entries, finished=result.finished, course_map=course_map[0],
+                    excluded=len(new_plan.excluded)))
     update = {"plan": new_plan, "usage": {"tutor": result.tokens}}
     if course_map[0] is not None:
         update["course_map"] = course_map[0]

@@ -27,7 +27,7 @@ from ..agents.tutor import run_tutor
 from ..config import MAX_REVIEW_ROUNDS
 from ..engine import DownloadEngine
 from ..run_context import RunContext, emit
-from ..state import CourseState, EngineEvent, PlanEntry, TaskOutcome
+from ..state import CourseState, DownloadTask, EngineEvent, PlanEntry, TaskOutcome
 from .report import write_report
 
 
@@ -80,37 +80,45 @@ def needs_run(entry: PlanEntry, outcomes: dict[str, TaskOutcome]) -> bool:
     return outcome.status == "failed" and entry.task.kind is not None and outcome.kind != entry.task.kind
 
 
+def tasks_for(state: CourseState, entries: list[PlanEntry]) -> list[DownloadTask]:
+    """The download tasks of plan entries, each carrying the term being collected."""
+    term = state["brief"].term if state.get("brief") else ""
+    return [e.task.model_copy(update={"term": term}) if term else e.task for e in entries]
+
+
+def run_downloads(tasks: list[DownloadTask], output_dir, cancel, relay=None) -> dict[str, TaskOutcome]:
+    """Carry out download tasks with the engine, relaying its events. Used by the graph and by retries."""
+    relay = relay or emit
+    events: queue.SimpleQueue[EngineEvent] = queue.SimpleQueue()
+    with DownloadEngine(output_dir, cancel_event=cancel, on_event=events.put) as engine:
+        engine.submit(tasks)
+        # Engine callbacks arrive on worker threads; LangGraph's stream writer only works on
+        # the calling node's thread, so events are relayed from here.
+        while True:
+            finished = engine.wait(timeout=0.25)
+            _relay(events, engine, relay)
+            if finished:
+                break
+        return engine.outcomes()
+
+
 def execute_node(state: CourseState, runtime: Runtime[RunContext]) -> dict:
     """The executor: carries out the plan with the download engine. No LLM involved."""
     rc = runtime.context
     outcomes = state.get("outcomes") or {}
-    term = state["brief"].term if state.get("brief") else ""
-    todo = [e.task.model_copy(update={"term": term}) if term else e.task
-            for e in state["plan"].entries if needs_run(e, outcomes)]
+    todo = tasks_for(state, [e for e in state["plan"].entries if needs_run(e, outcomes)])
     emit({"type": "phase", "phase": "download", "items": len(todo)})
     if rc.cancel.is_set():
         return {"stop_reason": "cancelled"}
     if not todo:
         return {"phase": "examination"}
-
-    events: queue.SimpleQueue[EngineEvent] = queue.SimpleQueue()
-    with DownloadEngine(rc.output_dir, cancel_event=rc.cancel, on_event=events.put) as engine:
-        engine.submit(todo)
-        # Engine callbacks arrive on worker threads; LangGraph's stream writer only works on
-        # this node's thread, so events are relayed from here.
-        while True:
-            finished = engine.wait(timeout=0.25)
-            _relay(events, engine)
-            if finished:
-                break
-        new_outcomes = engine.outcomes()
-    update: dict = {"outcomes": new_outcomes, "phase": "examination"}
+    update: dict = {"outcomes": run_downloads(todo, rc.output_dir, rc.cancel), "phase": "examination"}
     if rc.cancel.is_set():
         update["stop_reason"] = "cancelled"
     return update
 
 
-def _relay(events: queue.SimpleQueue, engine: DownloadEngine) -> None:
+def _relay(events: queue.SimpleQueue, engine: DownloadEngine, relay) -> None:
     if events.empty():
         return
     tasks = engine.tasks()
@@ -119,14 +127,15 @@ def _relay(events: queue.SimpleQueue, engine: DownloadEngine) -> None:
         event: EngineEvent = events.get()
         task = tasks.get(event.task_id)
         payload = {"type": "download", "event": event.type, "task_id": event.task_id, "url": event.url,
-                   "name": task.name if task else None, "bytes_done": event.bytes_done,
+                   "name": task.name if task else None, "parent_id": task.parent_id if task else None,
+                   "bytes_done": event.bytes_done,
                    "bytes_total": event.bytes_total, "done": stats["done"] + stats["failed"] + stats["cancelled"],
                    "total": stats["total"]}
         if event.outcome is not None:
             payload.update(status=event.outcome.status, files=event.outcome.files,
                            error=event.outcome.error_kind.value if event.outcome.error_kind else None,
                            message=event.outcome.message)
-        emit(payload)
+        relay(payload)
 
 
 def examiner_node(state: CourseState, runtime: Runtime[RunContext]) -> dict:

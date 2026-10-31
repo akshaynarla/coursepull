@@ -1,4 +1,4 @@
-"""Constants. Edit model + tunables here."""
+"""Settings: models, endpoints, budgets and limits."""
 
 from __future__ import annotations
 
@@ -7,18 +7,6 @@ HF_BASE_URL = "https://router.huggingface.co/v1"
 
 LLM_TEMPERATURE = 0.1
 LLM_MAX_OUTPUT_TOKENS = 8192
-
-# Per-agent step caps. One "step" = one LLM call + (optionally) tool execution.
-MAX_STEPS_DISCOVERER = 15
-MAX_STEPS_CLASSIFIER = 10
-MAX_STEPS_VERIFIER = 30
-
-# Tool result truncation cap. Big results blow up agent context fast.
-TOOL_RESULT_CHAR_CAP = 6000
-
-# Discoverer crawl cap (defense in depth; prompt also tells the agent to limit itself).
-MAX_PAGES_TO_CRAWL = 15
-MAX_LINKS_IN_FETCH_RESULT = 80
 
 REQUEST_TIMEOUT = 20
 DOWNLOAD_TIMEOUT = 60
@@ -83,6 +71,7 @@ AGENT_MAX_STEPS = {"orchestrator": 12, "scout": 30, "tutor": 40, "reviewer": 6, 
 # Per-agent token caps: an agent that reaches its cap stops and keeps what it has so far.
 AGENT_MAX_TOKENS = {"orchestrator": 120_000, "scout": 200_000, "tutor": 250_000, "reviewer": 40_000,
                     "examiner": 150_000}
+AGENT_WRAP_UP_RATIO = 0.75  # past this share of its cap, an agent is told to hand in what it has
 LLM_CALL_RETRIES = 2
 
 MAX_SCOUTS_PER_WAVE = 6

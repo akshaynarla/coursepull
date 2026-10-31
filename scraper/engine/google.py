@@ -9,13 +9,12 @@ from pathlib import Path, PurePosixPath
 
 from bs4 import BeautifulSoup
 
-from ..browser import open_page
+from ..browser import goto, open_page
 from ..config import (
     DRIVE_FOLDER_MAX_DEPTH,
     GOOGLE_DOC_FORMATS,
     GOOGLE_SHEET_FORMATS,
     GOOGLE_SLIDES_FORMATS,
-    PLAYWRIGHT_TIMEOUT_MS,
     PUBLISHED_SLIDES_MAX,
     REQUEST_TIMEOUT,
 )
@@ -110,7 +109,7 @@ def render_published_slides(ctx: TaskContext) -> Path:
     frames: list[bytes] = []
     total_bytes = 0
     with open_page(viewport=(width, height)) as page:
-        response = page.goto(url, wait_until="networkidle", timeout=PLAYWRIGHT_TIMEOUT_MS)
+        response = goto(page, url)
         if response is not None and response.status >= 400:
             raise error_for_status(response.status, url)
         base = ctx.claim(clean_title(page.title()))

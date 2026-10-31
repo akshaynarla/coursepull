@@ -15,9 +15,9 @@ import threading
 
 import openai
 
-from .config import AGENT_ROLES, LLM_ENDPOINTS, RUN_TOKEN_BUDGET
-from .graph import run_course
-from .llm import LLMRouter, ollama_running
+from .config import RUN_TOKEN_BUDGET
+from .graph import retry_failed, run_course
+from .llm import LLMRouter, ollama_running, parse_model_specs
 
 
 def _printer(event: dict) -> None:
@@ -33,7 +33,7 @@ def _printer(event: dict) -> None:
         print(f"  [{event['agent']}] read {event['url']} ({event['links']} links"
               + (", tabs revealed" if event.get("revealed") else "") + ")")
     elif kind == "plan":
-        print(f"  [Tutor] plan: {event['planned']} planned, {event['excluded']} excluded, {event['modules']} modules")
+        print(f"  [Tutor] plan: {event['planned']} planned, {event['excluded']} excluded, {len(event['modules'])} modules")
     elif kind == "review":
         print(f"  [Reviewer] {'approved' if event['approved'] else 'changes requested'}: {event['summary']}")
     elif kind == "download" and event["event"] == "finished":
@@ -59,6 +59,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--fresh", action="store_true", help="ignore any interrupted run and start over")
     parser.add_argument("--budget", type=int, default=RUN_TOKEN_BUDGET, help="token budget for all agents")
     parser.add_argument("--plan-only", action="store_true", help="stop after the reviewed plan; download nothing")
+    parser.add_argument("--retry-failed", action="store_true",
+                        help="re-download what failed in this folder's finished run (no agents, no tokens)")
     parser.add_argument("--model", action="append", default=[], metavar="ROLE=ENDPOINT:MODEL",
                         help="e.g. scout=ollama:qwen3.5:4b, or all=hf:Qwen/Qwen3.6-35B-A3B (repeatable)")
     parser.add_argument("--ask-token", action="store_true",
@@ -69,7 +71,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.WARNING,
                         format="%(levelname)s %(name)s: %(message)s")
     try:
-        models = _parse_models(args.model)
+        models = parse_model_specs(args.model)
     except ValueError as exc:
         parser.error(str(exc))
 
@@ -83,6 +85,13 @@ def main(argv: list[str] | None = None) -> int:
 
     api_keys = {"hf": getpass.getpass("HuggingFace token (input hidden): ").strip()} if args.ask_token else None
     signal.signal(signal.SIGINT, stop)
+    if args.retry_failed:
+        try:
+            retry_failed(args.course_url, args.output_dir, on_event=_printer, cancel=cancel)
+        except ValueError as exc:
+            print(exc)
+            return 2
+        return 0
     try:
         llm = LLMRouter.from_config(api_keys=api_keys, models=models)
         if down := [url for url in llm.ollama_urls() if not ollama_running(url)]:
@@ -102,20 +111,6 @@ def main(argv: list[str] | None = None) -> int:
         print(f"\n{exc}")
         return 2
     return 0
-
-
-def _parse_models(specs: list[str]) -> dict[str, dict]:
-    models: dict[str, dict] = {}
-    for spec in specs:
-        role, _, target = spec.partition("=")
-        endpoint, _, model = target.partition(":")
-        if not (role and endpoint in LLM_ENDPOINTS and model):
-            raise ValueError(f"--model {spec!r}: expected ROLE=ENDPOINT:MODEL with ENDPOINT in {list(LLM_ENDPOINTS)}")
-        for r in AGENT_ROLES if role == "all" else [role]:
-            if r not in AGENT_ROLES:
-                raise ValueError(f"--model {spec!r}: unknown role {r!r}; roles are {list(AGENT_ROLES)} or 'all'")
-            models[r] = {"endpoint": endpoint, "model": model}
-    return models
 
 
 if __name__ == "__main__":

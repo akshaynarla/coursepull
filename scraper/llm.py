@@ -15,7 +15,7 @@ from typing import Protocol
 
 import requests
 
-from .config import AGENT_MODELS, LLM_ENDPOINTS, LLM_MAX_OUTPUT_TOKENS, LLM_TEMPERATURE
+from .config import AGENT_MODELS, AGENT_ROLES, LLM_ENDPOINTS, LLM_MAX_OUTPUT_TOKENS, LLM_TEMPERATURE
 
 
 @dataclass(frozen=True)
@@ -187,3 +187,18 @@ class LLMRouter:
                 clients[role] = OpenAICompatClient(base_url=base_url, api_key=resolve_api_key(endpoint, api_keys),
                                                    model=spec["model"])
         return cls(clients)
+
+
+def parse_model_specs(specs: list[str]) -> dict[str, dict]:
+    """["scout=ollama:qwen3.5:4b", "all=hf:<model>"] -> per-role model settings."""
+    models: dict[str, dict] = {}
+    for spec in specs:
+        role, _, target = spec.partition("=")
+        endpoint, _, model = target.partition(":")
+        if not (role and endpoint in LLM_ENDPOINTS and model):
+            raise ValueError(f"--model {spec!r}: expected ROLE=ENDPOINT:MODEL with ENDPOINT in {list(LLM_ENDPOINTS)}")
+        for r in AGENT_ROLES if role == "all" else [role]:
+            if r not in AGENT_ROLES:
+                raise ValueError(f"--model {spec!r}: unknown role {r!r}; roles are {list(AGENT_ROLES)} or 'all'")
+            models[r] = {"endpoint": endpoint, "model": model}
+    return models

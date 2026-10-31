@@ -9,13 +9,12 @@ from dataclasses import dataclass
 import requests
 from bs4 import BeautifulSoup
 
-from .browser import open_page
+from .browser import goto, open_page
 from .config import (
     CONTROL_CLICK_SETTLE_MS,
     ESCALATE_MIN_ANCHORS,
     ESCALATE_MIN_BODY_CHARS,
     MAX_CONTROL_CLICKS,
-    PLAYWRIGHT_TIMEOUT_MS,
     REQUEST_TIMEOUT,
     USER_AGENT,
 )
@@ -60,7 +59,7 @@ def _fetch_requests(url: str) -> tuple[str, str]:
 
 def _fetch_playwright(url: str) -> tuple[str, str]:
     with open_page() as page:
-        page.goto(url, wait_until="networkidle", timeout=PLAYWRIGHT_TIMEOUT_MS)
+        goto(page, url)
         return page.url, page.content()
 
 
@@ -126,7 +125,7 @@ def render_interactive(url: str, max_clicks: int = MAX_CONTROL_CLICKS) -> tuple[
             pass
 
     with open_page() as page:
-        page.goto(url, wait_until="networkidle", timeout=PLAYWRIGHT_TIMEOUT_MS)
+        goto(page, url)
         final_url = page.url
         html = page.content()
         views = [PageView("", html)]
@@ -143,7 +142,7 @@ def render_interactive(url: str, max_clicks: int = MAX_CONTROL_CLICKS) -> tuple[
             if page.url.split("#")[0] != final_url.split("#")[0]:
                 # The control navigated away; what it leads to is a separate page.
                 log.debug("control %r on %s navigated to %s", label, url, page.url)
-                page.goto(final_url, wait_until="networkidle", timeout=PLAYWRIGHT_TIMEOUT_MS)
+                goto(page, final_url)
                 mark(page)
                 continue
             html = page.content()
